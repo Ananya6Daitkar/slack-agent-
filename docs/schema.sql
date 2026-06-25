@@ -1,0 +1,13 @@
+CREATE TABLE users (id TEXT PRIMARY KEY, slack_user_id TEXT NOT NULL, team_id TEXT NOT NULL, name TEXT, role TEXT, created_at TEXT NOT NULL);
+CREATE TABLE teams (id TEXT PRIMARY KEY, slack_team_id TEXT NOT NULL, name TEXT, created_at TEXT NOT NULL);
+CREATE TABLE incidents (id TEXT PRIMARY KEY, team_id TEXT NOT NULL, slack_channel_id TEXT, title TEXT NOT NULL, type TEXT NOT NULL, severity TEXT NOT NULL, status TEXT NOT NULL, commander_user_id TEXT, created_at TEXT NOT NULL, closed_at TEXT);
+CREATE TABLE incident_events (id TEXT PRIMARY KEY, incident_id TEXT NOT NULL, slack_message_ts TEXT, slack_channel_id TEXT, event_type TEXT NOT NULL, summary TEXT NOT NULL, source_url TEXT, confidence REAL, created_at TEXT NOT NULL);
+CREATE TABLE tasks (id TEXT PRIMARY KEY, incident_id TEXT NOT NULL, title TEXT NOT NULL, description TEXT, owner_user_id TEXT, priority TEXT NOT NULL, status TEXT NOT NULL, due_at TEXT, source_event_id TEXT, external_ticket_id TEXT);
+CREATE TABLE resources (id TEXT PRIMARY KEY, team_id TEXT NOT NULL, type TEXT NOT NULL, name TEXT NOT NULL, quantity INTEGER NOT NULL, location TEXT, status TEXT NOT NULL, external_ref TEXT, updated_at TEXT NOT NULL);
+CREATE TABLE resource_matches (id TEXT PRIMARY KEY, incident_id TEXT NOT NULL, task_id TEXT NOT NULL, resource_id TEXT NOT NULL, score REAL NOT NULL, rationale TEXT NOT NULL, status TEXT NOT NULL);
+CREATE TABLE decisions (id TEXT PRIMARY KEY, incident_id TEXT NOT NULL, text TEXT NOT NULL, owner TEXT, reason TEXT, evidence_urls TEXT, risk TEXT, review_at TEXT, approval_status TEXT NOT NULL, created_at TEXT NOT NULL);
+CREATE TABLE briefings (id TEXT PRIMARY KEY, incident_id TEXT NOT NULL, audience TEXT NOT NULL, content TEXT NOT NULL, evidence_urls TEXT, approved_by TEXT, slack_message_ts TEXT, created_at TEXT NOT NULL);
+CREATE TABLE audit_logs (id TEXT PRIMARY KEY, team_id TEXT NOT NULL, actor_user_id TEXT, action TEXT NOT NULL, target_type TEXT NOT NULL, target_id TEXT NOT NULL, metadata_json TEXT, created_at TEXT NOT NULL);
+CREATE TABLE agent_runs (id TEXT PRIMARY KEY, incident_id TEXT, user_id TEXT, intent TEXT, input_json TEXT, tool_calls_json TEXT, output_json TEXT, status TEXT, created_at TEXT NOT NULL);
+CREATE TABLE simulated_messages (id TEXT PRIMARY KEY, channel TEXT NOT NULL, user_name TEXT NOT NULL, text TEXT NOT NULL, ts TEXT NOT NULL, permalink TEXT, tags TEXT);
+CREATE TABLE external_tool_calls (id TEXT PRIMARY KEY, incident_id TEXT, tool_name TEXT NOT NULL, input_json TEXT, output_json TEXT, created_at TEXT NOT NULL);
