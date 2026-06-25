@@ -1,26 +1,28 @@
-# CrisisOps MCP Server
+# CrisisOps Tool Server (MCP)
 
-CrisisOps includes an MCP-compatible stdio server to make the MCP integration explicit for judges.
+CrisisOps includes a tool server that external systems can connect to. This shows judges that the integration layer is real and not just simulated inside the app.
 
-Run it locally:
+## Start the Tool Server
 
 ```bash
 npm run mcp:server
 ```
 
-The server supports:
+## What It Supports
 
-- `initialize`
-- `tools/list`
-- `tools/call`
+- `initialize` — starts the server
+- `tools/list` — returns a list of available tools
+- `tools/call` — calls a specific tool with arguments
 
-Exposed tools:
+## Available Tools
 
-- `search_inventory`
-- `get_location_eta`
-- `create_status_update`
+- `search_inventory` — finds available resources matching a need
+- `get_location_eta` — estimates arrival time for a field resource
+- `create_status_update` — drafts an external status update
 
-Example:
+## Try It Out
+
+Run all three steps in sequence:
 
 ```bash
 printf '%s\n' \
@@ -30,4 +32,13 @@ printf '%s\n' \
 | npm run mcp:server
 ```
 
-In the Slack demo, `/crisisops match resources` uses the same MCP tool concept through `src/services/mcpGatewayClient.ts`: it searches inventory, ranks resources, and logs the tool call. This standalone server is the explicit MCP artifact for judging and future connector integration.
+This will:
+1. Start the server
+2. List all available tools
+3. Search inventory for a generator to match the need at Clinic B
+
+## How It Connects to the Demo
+
+When you run `/crisisops match resources` in Slack, the app uses the same tool concept through `src/services/mcpGatewayClient.ts`. It searches inventory, ranks the best matches, and logs the tool call to the audit trail.
+
+The standalone server here is the explicit, inspectable version of that integration — useful for judges and for connecting real external systems later.

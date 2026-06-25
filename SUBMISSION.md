@@ -1,200 +1,148 @@
-# CrisisOps Agent Submission
+# CrisisOps Agent — Hackathon Submission
 
-## Recommended Track Selection
+## Which Tracks to Submit To
 
-Submit to:
+- **New Slack Agent** ✅
+- **Slack Agent for Good** ✅
 
-- **New Slack Agent**
-- **Slack Agent for Good**
+> Only add "Slack Agent for Organizations" if you publish to the Slack Marketplace before the deadline. The two tracks above are the strongest fit for what this project does.
 
-Only choose **Slack Agent for Organizations** if you submit or resubmit the app to the Slack Marketplace before the deadline. The current build is strongest for New Slack Agent + Agent for Good.
+---
 
-## Slack Agents for Good Track: Impact
+## Why It Qualifies for "Agent for Good"
 
-CrisisOps Agent helps under-resourced teams coordinate urgent response work directly inside Slack. Nonprofits, clinics, schools, public-sector teams, and disaster-response groups often manage crises through scattered messages across channels. During an emergency, missed requests and unclear ownership can delay support.
+A lot of urgent, important work happens in Slack — at nonprofits, clinics, schools, local government, and disaster-response teams. During a crisis, people post critical updates across many channels, but there is no structure. Things get missed, ownership is unclear, and help arrives too late.
 
-CrisisOps turns that chaos into accountable action. It detects emerging incidents, identifies urgent needs and unresolved blockers, matches resources like generators or volunteers through MCP tools, records decisions with evidence, and drafts approved updates. The impact is faster coordination, fewer missed needs, better auditability, and a lightweight command center for teams that may not have access to expensive emergency-management software.
+CrisisOps fixes that. It spots emerging problems, identifies what is needed and who is responsible, matches available resources (like generators or volunteers), records key decisions, and creates a clear record of what happened. The result: faster help, fewer missed needs, and a transparent audit trail — for teams that cannot afford expensive emergency software.
 
-## About The Project
+---
 
-### Inspiration
+## About the Project
 
-Urgent work already happens in Slack. During outages, disaster response, public health coordination, nonprofit logistics, and customer escalations, people post critical information across many channels. The problem is not lack of information. The problem is that the information is fragmented, unowned, and hard to turn into action quickly.
+### The Problem
 
-CrisisOps Agent was inspired by the idea that Slack can become more than a communication layer. With agents, Real-Time Search, and MCP integrations, Slack can become the command surface for high-stakes work.
+When something goes wrong, people flood Slack with messages. The facts are scattered, nobody knows who owns what, and critical decisions never get written down. It is hard to know what is happening, what is needed, or what has already been decided.
 
-### What it does
+### What CrisisOps Does
 
-CrisisOps Agent is a Slack-native command center for moments when work becomes urgent. It:
+CrisisOps is a Slack bot that turns those chaotic messages into structured action. Here is what happens when you use it:
 
-- Detects weak signals with **Chaos Radar**
-- Opens an incident command workflow in Slack
-- Searches Slack-like real-time context for urgent needs, blockers, owners, and evidence
-- Generates sourced situation briefings
-- Matches resource needs to inventory and volunteers through MCP-compatible tools
-- Records key decisions with owner, risk, review time, and evidence
-- Drafts external updates that require human approval
-- Generates postmortem drafts from the incident evidence trail
+1. **Chaos Radar** scans Slack messages and flags a possible emerging incident before anyone has to manually piece things together
+2. **Open Incident** creates a response workflow right in Slack — severity, who is in charge, what needs to happen
+3. **Situation Brief** pulls together what is known: what happened, who is affected, what is blocked, what to do next — with evidence, not guesses
+4. **Resource Matching** checks what is available (inventory, volunteers, staff) and matches them to open needs using connected tools
+5. **Decision Ledger** records every key decision with who made it, why, what the risk was, and when to review it
+6. **Approval Gate** writes draft external updates that a human must approve before they go out
+7. **Postmortem** turns the whole incident log into a structured after-action report
 
-### How we built it
+### How It Was Built
 
-We built CrisisOps as a TypeScript/Node.js Slack app using Slack Bolt-style app surfaces and Socket Mode. The app exposes slash commands and interactive Slack flows while also providing a local web preview for judging.
+CrisisOps is a TypeScript/Node.js app. It connects to Slack using Slack Bolt and Socket Mode, which means it runs in real time without needing a public server to be always on.
 
-The architecture has three core layers:
+The app is built in three layers:
 
-- **Slack interface:** `/crisisops`, app mentions, Block Kit cards, and interactive buttons.
-- **Agent layer:** intent routing, Chaos Radar, context retrieval, briefing generation, resource matching, decision ledger, approval manager, and postmortem generation.
-- **Integration layer:** a Real-Time Search abstraction and MCP-compatible tools that simulate inventory, ticketing, customer impact, on-call, location ETA, and status update systems.
+- **Slack layer** — slash commands, mentions, interactive buttons, and message cards
+- **Agent layer** — the brains: intent routing, incident detection, briefing, resource matching, decision logging, approvals, and postmortem generation
+- **Tools layer** — a search abstraction and a set of simulated tools (inventory, ticketing, on-call, customer impact, maps, status updates)
 
-The demo mode uses seeded Slack-like messages so judges can reliably see a full crisis workflow without needing real incident data.
+The demo runs fully offline with pre-loaded example data, so judges can see the whole workflow without any real incident or external account.
 
-### Challenges we ran into
+### The Hardest Part
 
-The biggest challenge was balancing a reliable hackathon demo with a realistic enterprise architecture. Real incident systems depend on many external tools, but a winning demo must be fast, repeatable, and easy to understand.
+Making something that is both reliable for a demo and realistic for production. Real incident tools have many dependencies and edge cases.
 
-We solved this by creating clean abstractions:
+The solution was clean swap points: the demo search can be replaced with Slack's real-time search; the simulated tools can be replaced with real Jira, PagerDuty, and Salesforce connections; and the in-memory store can be replaced with Postgres.
 
-- A demo Real-Time Search provider that can later be replaced with Slack RTS
-- An MCP-compatible stdio server and gateway that can later connect to real MCP servers
-- A memory store that can later be replaced with Postgres
-- Human approval and audit logs from the start, so the product feels enterprise-ready
+### What We're Proud Of
 
-### Accomplishments that we're proud of
+CrisisOps feels like a real operational tool, not just a chatbot. It proactively detects problems. It cites evidence instead of making things up. It requires human approval before sending anything external. It creates a clean audit trail from the first alert to the final postmortem.
 
-We are proud that CrisisOps feels like a real Slack-native product, not just a chatbot. It proactively detects incidents, creates structured response workflows, cites evidence, calls tools, records decisions, and generates postmortems.
+The whole workflow — detection, response, resources, decisions, and learning — completes in under three minutes.
 
-The demo tells a complete story in three minutes: chaos across Slack channels becomes command, action, approval, and learning.
+### What We Learned
 
-### What we learned
+The best Slack agents are not general assistants. They solve one clear problem and know exactly where in the workflow a human needs to stay in control.
 
-We learned that the most powerful Slack agents are not generic assistants. They are operational systems that understand where work happens, respect human approval, and coordinate across tools.
+Also: social good and business value are not opposites. The same tool that helps a company manage a server outage can help a nonprofit coordinate storm relief.
 
-We also learned that social impact and enterprise value can reinforce each other. The same command-center agent that helps a company manage an outage can help a nonprofit coordinate disaster relief or a clinic protect critical operations during a storm.
+### What's Next
 
-### What's next for CrisisOps Agent
+- Connect to Slack's real-time search API
+- Add real connectors: Google Sheets, Airtable, Jira, PagerDuty, Salesforce, Zendesk, Google Maps, Statuspage
+- Add a Slack App Home dashboard with incident history
+- Add admin controls for data retention, permissions, and connector allowlists
+- Publish to the Slack Marketplace
 
-Next, we would:
-
-- Replace the demo search provider with Slack Real-Time Search API
-- Extend the included MCP-compatible server into production MCP servers
-- Add real connectors for Google Sheets, Airtable, Jira, PagerDuty, Salesforce, Zendesk, Maps, and Statuspage
-- Add a polished Slack App Home dashboard
-- Add admin controls for retention, permissions, and connector allowlists
-- Submit the app to the Slack Marketplace for incident response, nonprofit operations, and public-sector teams
+---
 
 ## Built With
 
-- TypeScript
-- Node.js
-- Express
-- Slack Bolt
-- Slack Socket Mode
-- Slack slash commands
-- Slack Block Kit
-- Slack app mentions
-- Real-Time Search abstraction
-- MCP-compatible stdio server
-- MCP gateway tools
-- Zod
-- Vitest
-- Postgres-ready schema
-- Mermaid/SVG architecture assets
-- GitHub
+TypeScript, Node.js, Express, Slack Bolt, Slack Socket Mode, Slack Block Kit, Zod, Vitest
 
-## Upload Assets
+---
 
-- Architecture diagram: `assets/architecture-diagram.png`
-- Thumbnail: `assets/crisisops-thumbnail.png`
-- Web preview while app is running: `http://localhost:3000`
-- MCP server instructions: `MCP.md`
-- Video checklist and script: `VIDEO_SUBMISSION_CHECKLIST.md`
+## Assets
 
-## Elevator Pitch
+| Asset | Where |
+|-------|-------|
+| Architecture diagram | `assets/architecture-diagram.png` |
+| Thumbnail | `assets/crisisops-thumbnail.png` |
+| Web preview (while running) | `http://localhost:3000` |
+| Tool server examples | `MCP.md` |
+| Video script | `VIDEO_SUBMISSION_CHECKLIST.md` |
 
-CrisisOps turns chaotic Slack incidents into command: it detects signals, opens response workflows, matches resources, records decisions, and drafts approved updates.
+---
+
+## One-Line Pitch
+
+CrisisOps turns chaotic Slack messages into structured emergency response — detection, briefing, resources, decisions, and postmortem, all inside Slack.
+
+---
 
 ## Demo Video Script
 
-### 0:00-0:15
+### 0:00 – 0:15 · Set the scene
 
-Show the Slack workspace and say:
+Show a Slack workspace and say:
 
-> Urgent work already happens in Slack, but during incidents the facts are scattered across channels, owners are unclear, and decisions get lost.
+> When something goes wrong, people flood Slack — but the facts are scattered, ownership is unclear, and decisions get lost. CrisisOps fixes that.
 
-### 0:15-0:40
+### 0:15 – 0:40 · Chaos Radar
 
-Run:
+Run `/crisisops simulate`, then say:
 
-```text
-/crisisops simulate
-```
+> CrisisOps reads the recent Slack context and detects a possible incident before anyone has manually assembled the picture.
 
-Say:
+### 0:40 – 1:05 · Open Incident
 
-> CrisisOps uses real-time conversational context to detect a possible emerging incident before the team has manually assembled the picture.
+Run `/crisisops open incident`, then say:
 
-### 0:40-1:05
+> One command opens a structured command center in Slack: severity, who is in charge, and what needs to happen right now.
 
-Run:
+### 1:05 – 1:35 · Situation Brief
 
-```text
-/crisisops open incident
-```
+Run `/crisisops brief`, then say:
 
-Say:
+> The agent generates a sourced briefing — impact, timeline, blockers, owners, and the recommended next action. It only includes facts it can find in Slack. No hallucinations.
 
-> One command opens a Slack-native command center with severity, commander, and critical response tasks.
+### 1:35 – 2:05 · Resource Matching
 
-### 1:05-1:35
+Run `/crisisops match resources`, then say:
 
-Run:
+> CrisisOps calls its inventory tool, finds a mobile generator, and matches it to the open need at Clinic B.
 
-```text
-/crisisops brief
-```
+### 2:05 – 2:30 · Decision Log
 
-Say:
+Run `/crisisops record decision`, then say:
 
-> The agent creates a sourced situation brief: impact, timeline, blockers, owners, risks, and recommended next action. It does not invent facts; it cites evidence.
+> Every key decision is logged with who made it, the rationale, the risk, and when to review it.
 
-### 1:35-2:05
+### 2:30 – 2:50 · Postmortem
 
-Run:
+Run `/crisisops postmortem`, then say:
 
-```text
-/crisisops match resources
-```
+> The incident log becomes a postmortem automatically: what happened, what went well, what went wrong, and what to do differently next time.
 
-Say:
+### 2:50 – 3:00 · Close
 
-> CrisisOps calls MCP tools to search inventory and match the urgent need at Clinic B to an available mobile generator and field resources.
-
-### 2:05-2:30
-
-Run:
-
-```text
-/crisisops record decision
-```
-
-Say:
-
-> Key decisions are captured with owner, rationale, risk, review time, and evidence so the team has an audit trail.
-
-### 2:30-2:50
-
-Run:
-
-```text
-/crisisops postmortem
-```
-
-Say:
-
-> The same evidence trail becomes the postmortem, including impact, hypothesis, what went well, what went wrong, and follow-up actions.
-
-### 2:50-3:00
-
-Close with:
-
-> Slack is where urgent work already happens. CrisisOps turns the chaos into command.
+> Slack is already where urgent work happens. CrisisOps turns that chaos into command.

@@ -1,20 +1,22 @@
-# Architecture
+# How CrisisOps Is Built
+
+## The Big Picture
 
 ```mermaid
 flowchart TD
-    A["Slack users in channels, DMs, slash commands"] --> B["Slack Agent Builder / Bolt App"]
+    A["Slack users in channels, DMs, slash commands"] --> B["Slack App (Bolt + Socket Mode)"]
     B --> C["Intent Router"]
-    C --> D["CrisisOps Agent Orchestrator"]
+    C --> D["CrisisOps Agent"]
     D --> E["Context Retriever"]
-    E --> F["Real-Time Search Service"]
-    F --> G["Demo RTS Provider / Slack RTS API"]
+    E --> F["Real-Time Search"]
+    F --> G["Demo provider (swap in Slack RTS for production)"]
     D --> H["Chaos Radar"]
-    D --> I["Incident State Manager"]
+    D --> I["Incident Manager"]
     D --> J["Briefing Generator"]
     D --> K["Resource Matcher"]
     D --> L["Decision Ledger"]
     D --> M["Postmortem Generator"]
-    K --> N["MCP Gateway Client"]
+    K --> N["Tool Gateway"]
     N --> O["Inventory / Sheets"]
     N --> P["Jira / Linear"]
     N --> Q["PagerDuty / Opsgenie"]
@@ -22,51 +24,65 @@ flowchart TD
     N --> S["Maps / Statuspage"]
     D --> T["Approval Manager"]
     T --> U["Audit Logger"]
-    U --> V["Memory Store / Postgres"]
+    U --> V["Memory Store (swap in Postgres for production)"]
     I --> V
     J --> V
     L --> V
 ```
 
-## Agent Modules
+---
 
-- `intentRouter`: classifies Slack commands and mentions.
-- `contextRetriever`: retrieves operational context through RTS abstraction.
-- `realTimeSearchService`: mock provider now, Slack RTS adapter later.
-- `mcpGatewayClient`: MCP-style tool gateway with mock enterprise adapters.
-- `incidentStateManager`: opens incidents and initializes tasks/events.
-- `chaosRadar`: detects emerging incidents from cross-channel signals.
-- `decisionLedger`: suggests and formats auditable decisions.
-- `resourceMatcher`: extracts needs and ranks resource matches.
-- `briefingGenerator`: creates sourced situation briefs.
-- `postmortemGenerator`: generates post-incident reports.
-- `approvalManager`: enforces human approval before external writes.
-- `auditLogger`: records high-risk actions.
+## What Each Part Does
 
-## Data Model
+| Module | What it does |
+|--------|-------------|
+| `intentRouter` | Reads a Slack command or mention and figures out what the user wants |
+| `contextRetriever` | Pulls recent Slack messages relevant to the incident |
+| `realTimeSearchService` | Search provider — uses demo data now, Slack's search API in production |
+| `mcpGatewayClient` | Calls external tools (inventory, ticketing, on-call, etc.) |
+| `incidentStateManager` | Opens an incident and tracks its tasks and events |
+| `chaosRadar` | Scans messages across channels to catch an emerging incident early |
+| `decisionLedger` | Records key decisions with owner, rationale, risk, and evidence |
+| `resourceMatcher` | Finds urgent needs and matches them to available resources |
+| `briefingGenerator` | Writes a sourced situation summary from real Slack context |
+| `postmortemGenerator` | Turns the incident log into a structured after-action report |
+| `approvalManager` | Holds external updates until a human approves them |
+| `auditLogger` | Logs every high-risk action for the record |
 
-See `docs/schema.sql` for the production Postgres schema. The local demo uses `MemoryStore` to keep setup fast for judges.
+---
+
+## Data Storage
+
+The demo uses an in-memory store so there is nothing to install or configure. For production, swap it for Postgres — the schema is in `docs/schema.sql`.
+
+---
 
 ## Real-Time Search
 
-The demo provider searches seeded Slack-like messages by query terms, tags, channel, and timestamp. A production Slack RTS adapter should preserve the same interface:
+The demo searches pre-loaded example Slack messages. The search interface looks like this:
 
 ```ts
 search(query, { sinceIso, channels, limit })
 ```
 
-Briefings cite source permalinks and should never include facts that are not present in RTS results or MCP outputs.
+A production adapter connects to Slack's real-time search API using the same interface, so no other code needs to change.
 
-## MCP Integrations
+Briefings only include facts found through search. The agent never invents information.
 
-The MCP gateway exposes these tools:
+---
 
-- `search_inventory`
-- `reserve_resource`
-- `create_ticket`
-- `create_status_update`
-- `get_on_call_owner`
-- `get_customer_impact`
-- `get_location_eta`
+## External Tools (MCP)
 
-All tool calls are logged in `external_tool_calls`.
+The tool gateway connects to these capabilities:
+
+| Tool | What it does |
+|------|-------------|
+| `search_inventory` | Finds available resources (generators, staff, supplies) |
+| `reserve_resource` | Reserves a resource and logs it |
+| `create_ticket` | Opens a ticket in Jira or a similar system |
+| `create_status_update` | Drafts an external status page update |
+| `get_on_call_owner` | Finds out who is on call right now |
+| `get_customer_impact` | Looks up how many customers are affected |
+| `get_location_eta` | Gets an estimated arrival time for field resources |
+
+Every tool call is recorded in the audit log.
