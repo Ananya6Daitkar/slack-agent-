@@ -4,14 +4,14 @@ Use this file to explain the project confidently in internship interviews, resum
 
 ## 30-Second Resume Pitch
 
-CrisisOps Agent is a Slack-native incident command agent built with TypeScript, Node.js, Slack Bolt, Socket Mode, a Real-Time Search abstraction, and an MCP-style tool gateway. It detects emerging incidents from Slack conversations, opens response workflows, generates sourced situation briefs, matches resources, records decisions, requires human approval for external updates, and generates postmortems.
+CrisisOps Agent is a Slack-native incident command agent built with TypeScript, Node.js, Slack Bolt, Socket Mode, a Real-Time Search abstraction, and an MCP-compatible tool server/gateway. It detects emerging incidents from Slack conversations, opens response workflows, generates sourced situation briefs, matches resources, records decisions, requires human approval for external updates, and generates postmortems.
 
 ## Resume Bullet Options
 
-- Built **CrisisOps Agent**, a Slack-native incident command system using TypeScript, Node.js, Slack Bolt, Socket Mode, Block Kit, and MCP-style tool integrations.
+- Built **CrisisOps Agent**, a Slack-native incident command system using TypeScript, Node.js, Slack Bolt, Socket Mode, Block Kit, and MCP-compatible tool integrations.
 - Implemented **Chaos Radar**, a proactive signal detector that scores cross-channel Slack incident signals using urgency, blockers, affected users, missing owners, and channel spread.
 - Designed a **Real-Time Search abstraction** to retrieve Slack incident context with source citations, enabling evidence-backed briefings and postmortems.
-- Built an **MCP-style gateway** for inventory, ticketing, status updates, on-call ownership, customer impact, and location ETA tools.
+- Built an **MCP-compatible server and gateway** for inventory, status updates, customer impact, and location ETA tools.
 - Added **human approval and audit logging** for external status updates to improve enterprise trust and safety.
 - Created a repeatable hackathon demo with Slack slash commands, seeded incident data, web preview, architecture diagram, tests, and DevPost-ready documentation.
 
@@ -66,7 +66,7 @@ Interview explanation:
 
 > I separated retrieval from reasoning. The agent does not depend on one search provider. It only needs a `search(query, options)` contract that returns messages with evidence links.
 
-### 4. MCP-Style Gateway
+### 4. MCP-Compatible Server And Gateway
 
 The gateway simulates external tools:
 
@@ -80,7 +80,7 @@ The gateway simulates external tools:
 
 Interview explanation:
 
-> MCP lets the agent use external systems as tools. I implemented a local MCP-style gateway so the demo is reliable, while keeping the structure ready for real MCP servers.
+> MCP lets the agent use external systems as tools. I implemented a local MCP-compatible server and gateway so the demo is reliable, while keeping the structure ready for real MCP servers.
 
 ### 5. Decision Ledger
 
@@ -151,7 +151,8 @@ Slack Workspace
 - Slack slash commands
 - Slack Block Kit
 - Real-Time Search abstraction
-- MCP-style gateway
+- MCP-compatible stdio server
+- MCP gateway tools
 - Vitest
 - SVG architecture assets
 - Postgres-ready schema
@@ -166,7 +167,8 @@ Slack Workspace
 - `src/agent/briefingGenerator.ts`: situation brief generation
 - `src/agent/resourceMatcher.ts`: resource matching logic
 - `src/agent/decisionLedger.ts`: decision extraction and formatting
-- `src/services/mcpGatewayClient.ts`: MCP-style tools
+- `src/services/mcpGatewayClient.ts`: MCP gateway tools used by the Slack demo
+- `src/mcp/server.ts`: standalone MCP-compatible stdio server
 - `src/services/realTimeSearchService.ts`: search abstraction
 - `tests/agent.test.ts`: core logic tests
 
@@ -245,7 +247,7 @@ A: Add real Slack RTS, production MCP servers, a polished Slack App Home dashboa
 
 ## One-Minute Technical Explanation
 
-CrisisOps is a Slack app built in TypeScript with Slack Bolt and Socket Mode. The slash command routes user intent into an agent orchestrator. The orchestrator retrieves Slack-like context through a Real-Time Search abstraction, then calls modules like Chaos Radar, resource matching, decision ledger, briefing generation, and postmortem generation. External actions go through an MCP-style gateway, which logs every tool call. Risky actions such as status updates require human approval and create audit records. The demo uses an in-memory store and seeded messages, but the schema is Postgres-ready.
+CrisisOps is a Slack app built in TypeScript with Slack Bolt and Socket Mode. The slash command routes user intent into an agent orchestrator. The orchestrator retrieves Slack-like context through a Real-Time Search abstraction, then calls modules like Chaos Radar, resource matching, decision ledger, briefing generation, and postmortem generation. External actions go through MCP-compatible tools, which log every tool call. Risky actions such as status updates require human approval and create audit records. The demo uses an in-memory store and seeded messages, but the schema is Postgres-ready.
 
 ## What To Say In Resume Interviews
 
@@ -263,4 +265,4 @@ Use this structure:
 
 ## Best Resume Description
 
-Built a Slack-native incident command agent that detects emerging incidents, generates evidence-backed briefings, matches resources through MCP-style tools, records decisions, requires human approval for external updates, and creates postmortems. Implemented with TypeScript, Node.js, Slack Bolt, Socket Mode, Express, Vitest, and a Postgres-ready schema.
+Built a Slack-native incident command agent that detects emerging incidents, generates evidence-backed briefings, matches resources through MCP-compatible tools, records decisions, requires human approval for external updates, and creates postmortems. Implemented with TypeScript, Node.js, Slack Bolt, Socket Mode, Express, Vitest, and a Postgres-ready schema.

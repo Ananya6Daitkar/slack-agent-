@@ -31,7 +31,7 @@ CrisisOps Agent is a Slack-native command center for moments when work becomes u
 - Opens an incident command workflow in Slack
 - Searches Slack-like real-time context for urgent needs, blockers, owners, and evidence
 - Generates sourced situation briefings
-- Matches resource needs to inventory and volunteers through MCP-style tools
+- Matches resource needs to inventory and volunteers through MCP-compatible tools
 - Records key decisions with owner, risk, review time, and evidence
 - Drafts external updates that require human approval
 - Generates postmortem drafts from the incident evidence trail
@@ -44,7 +44,7 @@ The architecture has three core layers:
 
 - **Slack interface:** `/crisisops`, app mentions, Block Kit cards, and interactive buttons.
 - **Agent layer:** intent routing, Chaos Radar, context retrieval, briefing generation, resource matching, decision ledger, approval manager, and postmortem generation.
-- **Integration layer:** a Real-Time Search abstraction and an MCP-style gateway that simulates inventory, ticketing, customer impact, on-call, location ETA, and status update systems.
+- **Integration layer:** a Real-Time Search abstraction and MCP-compatible tools that simulate inventory, ticketing, customer impact, on-call, location ETA, and status update systems.
 
 The demo mode uses seeded Slack-like messages so judges can reliably see a full crisis workflow without needing real incident data.
 
@@ -55,7 +55,7 @@ The biggest challenge was balancing a reliable hackathon demo with a realistic e
 We solved this by creating clean abstractions:
 
 - A demo Real-Time Search provider that can later be replaced with Slack RTS
-- An MCP-style gateway that can later connect to real MCP servers
+- An MCP-compatible stdio server and gateway that can later connect to real MCP servers
 - A memory store that can later be replaced with Postgres
 - Human approval and audit logs from the start, so the product feels enterprise-ready
 
@@ -76,7 +76,7 @@ We also learned that social impact and enterprise value can reinforce each other
 Next, we would:
 
 - Replace the demo search provider with Slack Real-Time Search API
-- Convert the mock MCP gateway into production MCP servers
+- Extend the included MCP-compatible server into production MCP servers
 - Add real connectors for Google Sheets, Airtable, Jira, PagerDuty, Salesforce, Zendesk, Maps, and Statuspage
 - Add a polished Slack App Home dashboard
 - Add admin controls for retention, permissions, and connector allowlists
@@ -93,7 +93,8 @@ Next, we would:
 - Slack Block Kit
 - Slack app mentions
 - Real-Time Search abstraction
-- MCP-style gateway
+- MCP-compatible stdio server
+- MCP gateway tools
 - Zod
 - Vitest
 - Postgres-ready schema
@@ -105,6 +106,8 @@ Next, we would:
 - Architecture diagram: `assets/architecture-diagram.png`
 - Thumbnail: `assets/crisisops-thumbnail.png`
 - Web preview while app is running: `http://localhost:3000`
+- MCP server instructions: `MCP.md`
+- Video checklist and script: `VIDEO_SUBMISSION_CHECKLIST.md`
 
 ## Elevator Pitch
 
@@ -164,7 +167,7 @@ Run:
 
 Say:
 
-> CrisisOps calls MCP-style tools to search inventory and match the urgent need at Clinic B to an available mobile generator and field resources.
+> CrisisOps calls MCP tools to search inventory and match the urgent need at Clinic B to an available mobile generator and field resources.
 
 ### 2:05-2:30
 

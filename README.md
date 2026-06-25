@@ -2,7 +2,7 @@
 
 CrisisOps Agent is a Slack-native command center for urgent work: outages, cyber incidents, disaster response, school safety, public health coordination, nonprofit logistics, and enterprise escalations.
 
-It uses Slack as the operating surface. The agent detects weak signals, opens incidents, generates sourced briefings, matches needs to resources through MCP-style tools, records decisions, drafts approved updates, and creates postmortems.
+It uses Slack as the operating surface. The agent detects weak signals, opens incidents, generates sourced briefings, matches needs to resources through MCP-compatible tools, records decisions, drafts approved updates, and creates postmortems.
 
 ## Hackathon Differentiators
 
@@ -10,7 +10,7 @@ It uses Slack as the operating surface. The agent detects weak signals, opens in
 - **Decision Ledger:** records key decisions with owner, evidence, risk, and review time.
 - **Simulation Twin:** creates a repeatable crisis scenario for a polished 3-minute demo.
 - **RTS abstraction:** demo provider searches seeded Slack-like messages; production can swap in Slack Real-Time Search.
-- **MCP gateway:** local MCP-style tools simulate inventory, ticketing, on-call, customer impact, location ETA, and status updates.
+- **MCP integration:** MCP-compatible stdio server plus local MCP gateway tools simulate inventory, ticketing, on-call, customer impact, location ETA, and status updates.
 - **Human approval:** external updates and resource reservations are approval-gated and audited.
 
 ## Quick Start
@@ -40,6 +40,8 @@ Submission assets:
 - `assets/crisisops-thumbnail.png`
 - `SUBMISSION.md`
 - `STUDY_GUIDE.md`
+- `MCP.md`
+- `VIDEO_SUBMISSION_CHECKLIST.md`
 
 Demo endpoints:
 
@@ -109,10 +111,20 @@ npm test
 npm run build
 ```
 
+## MCP Server
+
+Run the MCP-compatible stdio server:
+
+```bash
+npm run mcp:server
+```
+
+See `MCP.md` for tool-call examples.
+
 ## Production Replacements
 
 The demo is intentionally reliable without external credentials. For production:
 
 - Replace `DemoRealTimeSearchService` with Slack Real-Time Search API calls.
-- Replace `McpGatewayClient` mock methods with real MCP servers for Jira, PagerDuty, Salesforce, Zendesk, Sheets/Airtable, Maps, and Statuspage.
+- Replace or extend the included MCP-compatible server with production MCP servers for Jira, PagerDuty, Salesforce, Zendesk, Sheets/Airtable, Maps, and Statuspage.
 - Replace `MemoryStore` with Postgres using `docs/schema.sql`.
