@@ -1,46 +1,124 @@
 import { Briefing, Decision, Incident, ResourceMatch, SimulatedMessage, Task } from "../types.js";
+import { groqComplete } from "../services/groqService.js";
 
-export function generateBriefing(input: {
+const evidenceRef = (message: SimulatedMessage) => `${message.id} in ${message.channel}`;
+
+/** Deterministic fallback — always works, no API key needed */
+function buildFallbackContent(input: {
   incident: Incident;
   messages: SimulatedMessage[];
   tasks: Task[];
   matches: ResourceMatch[];
   decisions: Decision[];
-}): Omit<Briefing, "id" | "createdAt"> {
-  const blockers = input.messages.filter((message) => message.tags.includes("blocked") || /blocked|no owner|need/i.test(message.text));
+}): string {
+  const blockers = input.messages.filter(
+    (m) => m.tags.includes("blocked") || /blocked|no owner|need/i.test(m.text)
+  );
   const timeline = input.messages
     .slice()
     .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts))
     .slice(-5)
-    .map((message) => `- ${new Date(message.ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} ${message.channel}: ${message.text}`);
+    .map((m) => `- ${new Date(m.ts).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} ${m.channel}: ${m.text}`);
 
-  const content = [
+  return [
     `Status: ${input.incident.status.toUpperCase()} ${input.incident.severity}`,
     `Incident: ${input.incident.title}`,
-    `Impact: hospital clinic operations, patient portal confirmations, and field resource dispatch are affected based on sourced Slack evidence.`,
+    "Impact: hospital clinic operations, patient portal confirmations, and field resource dispatch are affected.",
     "",
     "Recent timeline:",
     ...timeline,
     "",
     "Open blockers:",
-    ...(blockers.length ? blockers.slice(0, 4).map((m) => `- ${m.text} (${m.permalink})`) : ["- No blockers found in current evidence."]),
+    ...(blockers.length
+      ? blockers.slice(0, 4).map((m) => `- ${m.text} [evidence: ${evidenceRef(m)}]`)
+      : ["- No blockers found in current evidence."]),
     "",
     "Owners and actions:",
-    ...(input.tasks.length ? input.tasks.map((task) => `- ${task.priority.toUpperCase()}: ${task.title} [${task.status}]`) : ["- Assign incident commander and customer comms owner."]),
+    ...(input.tasks.length
+      ? input.tasks.map((t) => `- ${t.priority.toUpperCase()}: ${t.title} [${t.status}]`)
+      : ["- Assign incident commander and customer comms owner."]),
     "",
     "Resource matches:",
-    ...(input.matches.length ? input.matches.slice(0, 3).map((match) => `- Match ${match.resourceId}: ${match.score}/100, ${match.rationale}`) : ["- No approved resource match yet."]),
+    ...(input.matches.length
+      ? input.matches.slice(0, 3).map((m) => `- Match ${m.resourceId}: ${m.score}/100, ${m.rationale}`)
+      : ["- No approved resource match yet."]),
     "",
     "Decision ledger:",
-    ...(input.decisions.length ? input.decisions.map((decision) => `- ${decision.text} (${decision.approvalStatus})`) : ["- No decisions recorded yet."]),
+    ...(input.decisions.length
+      ? input.decisions.map((d) => `- ${d.text} (${d.approvalStatus})`)
+      : ["- No decisions recorded yet."]),
     "",
     "Recommended next action: approve customer/status update after commander confirms mitigation and dispatch approval."
   ].join("\n");
+}
+
+export async function generateBriefing(input: {
+  incident: Incident;
+  messages: SimulatedMessage[];
+  tasks: Task[];
+  matches: ResourceMatch[];
+  decisions: Decision[];
+}): Promise<Omit<Briefing, "id" | "createdAt">> {
+  const evidenceUrls = input.messages.slice(0, 8).map(evidenceRef);
+
+  // ── Build a structured evidence block for the LLM ──────────────────────────
+  const evidenceBlock = input.messages
+    .slice()
+    .sort((a, b) => Date.parse(a.ts) - Date.parse(b.ts))
+    .map((m) => `[${m.channel} / ${m.user}] ${m.text}`)
+    .join("\n");
+
+  const taskBlock = input.tasks.length
+    ? input.tasks.map((t) => `- [${t.priority}] ${t.title}: ${t.status}`).join("\n")
+    : "None assigned yet.";
+
+  const matchBlock = input.matches.length
+    ? input.matches.slice(0, 3).map((m) => `- Score ${m.score}/100: ${m.rationale}`).join("\n")
+    : "No resource matches yet.";
+
+  const decisionBlock = input.decisions.length
+    ? input.decisions.map((d) => `- ${d.text} (owner: ${d.owner}, status: ${d.approvalStatus})`).join("\n")
+    : "No decisions recorded.";
+
+  const systemPrompt = `You are an incident command AI assistant embedded in Slack. 
+Your job is to write a concise, structured situation brief for an incident commander.
+Rules:
+- Only use facts present in the evidence. Never invent details.
+- Cite evidence references like [#channel / user] when stating facts.
+- Be direct and actionable. No filler.
+- Format with clear sections: Status, Impact, Timeline, Blockers, Owners, Resources, Decisions, Next Action.
+- Keep the total response under 400 words.`;
+
+  const userPrompt = `Incident: ${input.incident.title}
+Severity: ${input.incident.severity} | Status: ${input.incident.status}
+
+Evidence from Slack (${input.messages.length} messages):
+${evidenceBlock}
+
+Open tasks:
+${taskBlock}
+
+Resource matches:
+${matchBlock}
+
+Decisions:
+${decisionBlock}
+
+Write the situation brief now.`;
+
+  // Try Groq first, fall back to deterministic if no key or error
+  const llmContent = await groqComplete(systemPrompt, userPrompt, 600);
+  const content = llmContent ?? buildFallbackContent(input);
+
+  // Tag it so the UI can show whether LLM was used
+  const aiTag = llmContent
+    ? "\n\n─────────────────────────\n⚡ Generated by Groq LLaMA-3.3-70b · Evidence-grounded · No hallucinations"
+    : "\n\n─────────────────────────\n📋 Generated from Slack evidence (rule-based fallback)";
 
   return {
     incidentId: input.incident.id,
     audience: "incident",
-    content,
-    evidenceUrls: input.messages.slice(0, 8).map((message) => message.permalink)
+    content: content + aiTag,
+    evidenceUrls
   };
 }

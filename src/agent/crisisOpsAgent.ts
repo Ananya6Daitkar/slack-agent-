@@ -28,7 +28,7 @@ export class CrisisOpsAgent {
   async generateBrief() {
     const incident = this.store.latestIncident() ?? this.openIncident("demo-user");
     const messages = await this.context.incidentSignals();
-    const briefing = generateBriefing({
+    const briefing = await generateBriefing({
       incident,
       messages,
       tasks: this.store.tasks.filter((task) => task.incidentId === incident.id),
@@ -90,7 +90,7 @@ export class CrisisOpsAgent {
   async postmortem() {
     const incident = this.store.latestIncident() ?? this.openIncident("demo-user");
     const messages = await this.context.incidentSignals();
-    return generatePostmortem({
+    return await generatePostmortem({
       incident,
       messages,
       tasks: this.store.tasks.filter((task) => task.incidentId === incident.id),
