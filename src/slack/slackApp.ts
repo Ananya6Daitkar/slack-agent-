@@ -3,7 +3,7 @@ import { CrisisOpsAgent } from "../agent/crisisOpsAgent.js";
 import { routeIntent } from "../agent/intentRouter.js";
 import { ApprovalManager } from "../agent/approvalManager.js";
 import { store } from "../store/memoryStore.js";
-import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks, resourceReservedBlocks } from "./blockKit.js";
+import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks, openIncidentModalView, postmortemBlocks, resourceReservedBlocks } from "./blockKit.js";
 import { createAssistant } from "./assistantHandler.js";
 
 function appHomeBlocks() {
@@ -123,7 +123,9 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
       return;
     }
     if (intent === "POSTMORTEM") {
-      await respond(`\`\`\`${(await agent.postmortem()).slice(0, 2800)}\`\`\``);
+      const pm = await agent.postmortem();
+      const inc = store.latestIncident();
+      await respond({ text: "Postmortem ready.", blocks: postmortemBlocks(pm, inc?.title ?? "Incident") });
       return;
     }
     const briefing = await agent.generateBrief();
@@ -154,7 +156,9 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
         blocks: decision ? decisionBlocks(decision) : undefined
       });
     } else if (intent === "POSTMORTEM") {
-      await client.chat.postMessage({ channel, text: `\`\`\`${(await agent.postmortem()).slice(0, 2800)}\`\`\`` });
+      const pm = await agent.postmortem();
+      const inc = store.latestIncident();
+      await client.chat.postMessage({ channel, text: "Postmortem ready.", blocks: postmortemBlocks(pm, inc?.title ?? "Incident") });
     } else {
       const briefing = await agent.generateBrief();
       await client.chat.postMessage({ channel, text: "Situation brief ready.", blocks: briefingBlocks(briefing) });
@@ -214,8 +218,40 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
     await ack();
     const channelId = "channel" in body && body.channel ? body.channel.id : undefined;
     if (!channelId) return;
-    const postmortem = await agent.postmortem();
-    await client.chat.postMessage({ channel: channelId, text: `\`\`\`${postmortem.slice(0, 2800)}\`\`\`` });
+    const pm = await agent.postmortem();
+    const inc = store.latestIncident();
+    await client.chat.postMessage({ channel: channelId, text: "Postmortem ready.", blocks: postmortemBlocks(pm, inc?.title ?? "Incident") });
+  });
+
+  // ── Open Incident Modal ──────────────────────────────────────────────────
+  app.action("open_incident_modal", async ({ ack, body, client }) => {
+    await ack();
+    await client.views.open({
+      trigger_id: (body as any).trigger_id,
+      view: openIncidentModalView()
+    });
+  });
+
+  app.view("open_incident_modal_submit", async ({ ack, body, view, client }) => {
+    await ack();
+    const vals = view.state.values;
+    const title = (vals["incident_title"]?.["title_input"] as any)?.value ?? "Untitled Incident";
+    const severity = (vals["incident_severity"]?.["severity_select"] as any)?.selected_option?.value ?? "SEV2";
+    const type = (vals["incident_type"]?.["type_select"] as any)?.selected_option?.value ?? "disaster";
+    const userId = body.user.id;
+
+    // Override the incident manager's defaults with user-chosen values
+    const incident = agent["incidents"].openDemoIncident(userId, title);
+    // Patch severity and type post-creation
+    incident.severity = severity as any;
+    incident.type = type as any;
+
+    // Post confirmation to the user via DM
+    await client.chat.postMessage({
+      channel: userId,
+      text: "Incident opened.",
+      blocks: incidentOpenedBlocks(incident)
+    });
   });
 
   app.action("approve_status_update", async ({ ack, body }) => {

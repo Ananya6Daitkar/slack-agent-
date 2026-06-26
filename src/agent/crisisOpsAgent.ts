@@ -12,7 +12,7 @@ export class CrisisOpsAgent {
   constructor(
     private readonly store: MemoryStore,
     private readonly context: ContextRetriever,
-    private readonly incidents: IncidentStateManager,
+    readonly incidents: IncidentStateManager,
     readonly mcp: McpGatewayClient
   ) {}
 

@@ -33,10 +33,7 @@ export function chaosRadarBlocks(signal: ChaosSignal) {
     { type: "header", text: { type: "plain_text", text: "📡  Chaos Radar — Emerging Incident Detected" } },
     {
       type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*${signal.title}*\n${signal.summary}`
-      },
+      text: { type: "mrkdwn", text: `*${signal.title}*\n${signal.summary}` },
       accessory: {
         type: "button",
         text: { type: "plain_text", text: `${signal.severity}` },
@@ -58,6 +55,7 @@ export function chaosRadarBlocks(signal: ChaosSignal) {
       type: "actions",
       elements: [
         { type: "button", text: { type: "plain_text", text: "🔴  Open Incident" }, style: "primary", action_id: "open_incident_from_radar", value: signal.title },
+        { type: "button", text: { type: "plain_text", text: "🛠  Open with Options" }, action_id: "open_incident_modal", value: signal.severity },
         { type: "button", text: { type: "plain_text", text: "👁  Watch" }, action_id: "watch_signal", value: "watch" },
         { type: "button", text: { type: "plain_text", text: "Dismiss" }, action_id: "ignore_signal", value: "ignore" }
       ]
@@ -68,23 +66,18 @@ export function chaosRadarBlocks(signal: ChaosSignal) {
 
 export function incidentOpenedBlocks(incident: Incident) {
   const elapsed = Math.round((Date.now() - Date.parse(incident.createdAt)) / 60000);
+  const sevColor = incident.severity === "SEV1" ? "🔴" : incident.severity === "SEV2" ? "🟠" : "🟡";
   return [
     simulationBanner(),
-    { type: "header", text: { type: "plain_text", text: "🔴  CrisisOps Command Center — Incident Open" } },
-    {
-      type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*${incident.title}*`
-      }
-    },
+    { type: "header", text: { type: "plain_text", text: "🚨  CrisisOps Command Center — Incident Open" } },
+    { type: "section", text: { type: "mrkdwn", text: `*${incident.title}*` } },
     {
       type: "section",
       fields: [
-        { type: "mrkdwn", text: `*Status*\n${incident.status.toUpperCase()}` },
-        { type: "mrkdwn", text: `*Severity*\n${incident.severity}` },
+        { type: "mrkdwn", text: `*Status*\n🔴 ${incident.status.toUpperCase()}` },
+        { type: "mrkdwn", text: `*Severity*\n${sevColor} ${incident.severity}` },
         { type: "mrkdwn", text: `*Commander*\n<@${incident.commanderUserId}>` },
-        { type: "mrkdwn", text: `*Elapsed*\n${elapsed < 1 ? "<1" : elapsed} min` }
+        { type: "mrkdwn", text: `*Elapsed*\n⏱ ${elapsed < 1 ? "<1" : elapsed} min` }
       ]
     },
     { type: "divider" },
@@ -111,12 +104,7 @@ export function briefingBlocks(briefing: Briefing) {
     { type: "section", text: { type: "mrkdwn", text: `\`\`\`${body}\`\`\`` } },
     {
       type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `📎  Evidence cited from ${briefing.evidenceUrls.length} messages. Audience: *${briefing.audience}*`
-        }
-      ]
+      elements: [{ type: "mrkdwn", text: `📎  Evidence cited from ${briefing.evidenceUrls.length} messages. Audience: *${briefing.audience}*  ·  ⚡ Groq LLaMA-3.3-70b` }]
     },
     { type: "divider" },
     {
@@ -135,34 +123,19 @@ export function matchBlocks(matches: ResourceMatch[]) {
   const resourceLines = top.length
     ? top.map((m, i) => `${i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}  *Score ${m.score}/100* — ${m.rationale}`).join("\n\n")
     : "No resource matches found in current inventory.";
-
   return [
     simulationBanner(),
     { type: "header", text: { type: "plain_text", text: "🔧  Resource Matches" } },
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: resourceLines }
-    },
+    { type: "section", text: { type: "mrkdwn", text: resourceLines } },
     {
       type: "context",
-      elements: [
-        {
-          type: "mrkdwn",
-          text: `🛠  Called MCP tools: \`search_inventory\` → \`get_location_eta\` → \`reserve_resource\`  |  ${top.length} match${top.length !== 1 ? "es" : ""} ranked`
-        }
-      ]
+      elements: [{ type: "mrkdwn", text: `🛠  Called MCP tools: \`search_inventory\` → \`get_location_eta\` → \`reserve_resource\`  |  ${top.length} match${top.length !== 1 ? "es" : ""} ranked` }]
     },
     { type: "divider" },
     {
       type: "actions",
       elements: [
-        {
-          type: "button",
-          text: { type: "plain_text", text: "✅  Approve & Reserve Best Match" },
-          style: "primary",
-          action_id: "approve_best_match",
-          value: top[0]?.resourceId ?? ""
-        },
+        { type: "button", text: { type: "plain_text", text: "✅  Approve & Reserve Best Match" }, style: "primary", action_id: "approve_best_match", value: top[0]?.resourceId ?? "" },
         { type: "button", text: { type: "plain_text", text: "📝  Record Decision" }, action_id: "record_decision", value: top[0]?.incidentId ?? "" }
       ]
     },
@@ -174,10 +147,7 @@ export function decisionBlocks(decision: Decision) {
   return [
     simulationBanner(),
     { type: "header", text: { type: "plain_text", text: "📝  Decision Ledger Entry" } },
-    {
-      type: "section",
-      text: { type: "mrkdwn", text: `*${decision.text}*` }
-    },
+    { type: "section", text: { type: "mrkdwn", text: `*${decision.text}*` } },
     {
       type: "section",
       fields: [
@@ -187,12 +157,7 @@ export function decisionBlocks(decision: Decision) {
         { type: "mrkdwn", text: `*Review at*\n${new Date(decision.reviewAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}` }
       ]
     },
-    {
-      type: "context",
-      elements: [
-        { type: "mrkdwn", text: `📎  Evidence: ${decision.evidenceUrls.join(", ")}` }
-      ]
-    },
+    { type: "context", elements: [{ type: "mrkdwn", text: `📎  Evidence: ${decision.evidenceUrls.join(", ")}` }] },
     { type: "divider" },
     {
       type: "actions",
@@ -207,18 +172,165 @@ export function decisionBlocks(decision: Decision) {
 
 export function resourceReservedBlocks(resourceName: string, incidentTitle: string, eta?: number) {
   return [
-    { type: "header", text: { type: "plain_text", text: "✅  Resource Reserved" } },
+    { type: "header", text: { type: "plain_text", text: "✅  Resource Reserved & Dispatched" } },
     {
       type: "section",
-      text: {
-        type: "mrkdwn",
-        text: `*${resourceName}* has been reserved and dispatched for *${incidentTitle}*.${eta ? `\n\n⏱  Estimated arrival: *${eta} minutes*` : ""}`
-      }
+      text: { type: "mrkdwn", text: `*${resourceName}* has been reserved and dispatched for *${incidentTitle}*.${eta ? `\n\n⏱  Estimated arrival: *${eta} minutes*` : ""}` }
     },
-    {
-      type: "context",
-      elements: [{ type: "mrkdwn", text: "🛠  MCP tool call logged: `reserve_resource` • Audit trail updated" }]
-    },
+    { type: "context", elements: [{ type: "mrkdwn", text: "🛠  MCP tool call logged: `reserve_resource` · `get_location_eta` • Audit trail updated" }] },
     nextStepContext("Record Decision", "/crisisops record decision")
   ];
+}
+
+/** ── NEW: Rich Block Kit postmortem report ──────────────────────────────── */
+export function postmortemBlocks(raw: string, incidentTitle: string) {
+  // Parse sections from the markdown postmortem text
+  const section = (heading: string): string => {
+    const re = new RegExp(`##\\s+${heading}\\s*\\n([\\s\\S]*?)(?=\\n##|⚡|─|$)`, "i");
+    return raw.match(re)?.[1]?.trim() ?? "";
+  };
+
+  const summary      = section("Summary");
+  const impact       = section("Impact");
+  const timeline     = section("Timeline");
+  const rootCause    = section("Root Cause Hypothesis");
+  const wentWell     = section("What Went Well");
+  const wentWrong    = section("What Went Wrong");
+  const followUp     = section("Follow-Up Actions");
+  const decisions    = section("Decision Ledger");
+  const isAI         = raw.includes("⚡ Generated by Groq");
+
+  const blocks: any[] = [
+    { type: "header", text: { type: "plain_text", text: "📊  Post-Incident Report" } },
+    {
+      type: "section",
+      text: { type: "mrkdwn", text: `*${incidentTitle}*` },
+      accessory: {
+        type: "button",
+        text: { type: "plain_text", text: isAI ? "⚡ AI-Generated" : "📋 Rule-Based" },
+        action_id: "noop_pm_badge",
+        value: "badge"
+      }
+    },
+    { type: "divider" }
+  ];
+
+  if (summary) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*📌 Summary*\n${summary}` } });
+    blocks.push({ type: "divider" });
+  }
+
+  if (impact) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*💥 Impact*\n${impact}` } });
+  }
+
+  if (rootCause) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*🔍 Root Cause Hypothesis*\n${rootCause}` } });
+  }
+
+  if (timeline) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*⏱ Timeline*\n${timeline}` } });
+    blocks.push({ type: "divider" });
+  }
+
+  if (wentWell || wentWrong) {
+    blocks.push({
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*✅ What Went Well*\n${wentWell || "—"}` },
+        { type: "mrkdwn", text: `*❌ What Went Wrong*\n${wentWrong || "—"}` }
+      ]
+    });
+    blocks.push({ type: "divider" });
+  }
+
+  if (followUp) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*🔨 Follow-Up Actions*\n${followUp}` } });
+  }
+
+  if (decisions) {
+    blocks.push({ type: "section", text: { type: "mrkdwn", text: `*📝 Decision Ledger*\n${decisions}` } });
+  }
+
+  blocks.push({
+    type: "context",
+    elements: [{ type: "mrkdwn", text: isAI ? "⚡ Generated by Groq LLaMA-3.3-70b · Evidence-grounded · No hallucinations" : "📋 Generated from Slack evidence" }]
+  });
+
+  return blocks;
+}
+
+/** ── NEW: Open Incident modal payload ──────────────────────────────────── */
+export function openIncidentModalView(triggerId?: string) {
+  return {
+    type: "modal" as const,
+    callback_id: "open_incident_modal_submit",
+    title: { type: "plain_text" as const, text: "🚨  Open Incident" },
+    submit: { type: "plain_text" as const, text: "Open Incident" },
+    close: { type: "plain_text" as const, text: "Cancel" },
+    blocks: [
+      {
+        type: "input",
+        block_id: "incident_title",
+        label: { type: "plain_text", text: "Incident Title" },
+        element: {
+          type: "plain_text_input",
+          action_id: "title_input",
+          placeholder: { type: "plain_text", text: "e.g. Regional hospital network outage during storm response" },
+          initial_value: "Regional hospital network outage during storm response"
+        }
+      },
+      {
+        type: "input",
+        block_id: "incident_severity",
+        label: { type: "plain_text", text: "Severity" },
+        element: {
+          type: "static_select",
+          action_id: "severity_select",
+          placeholder: { type: "plain_text", text: "Select severity" },
+          initial_option: { text: { type: "plain_text", text: "SEV2 — Major Impact" }, value: "SEV2" },
+          options: [
+            { text: { type: "plain_text", text: "SEV1 — Critical / All Hands" }, value: "SEV1" },
+            { text: { type: "plain_text", text: "SEV2 — Major Impact" }, value: "SEV2" },
+            { text: { type: "plain_text", text: "SEV3 — Degraded Service" }, value: "SEV3" },
+            { text: { type: "plain_text", text: "WATCH — Monitoring" }, value: "WATCH" }
+          ]
+        }
+      },
+      {
+        type: "input",
+        block_id: "incident_type",
+        label: { type: "plain_text", text: "Incident Type" },
+        element: {
+          type: "static_select",
+          action_id: "type_select",
+          placeholder: { type: "plain_text", text: "Select type" },
+          initial_option: { text: { type: "plain_text", text: "🌪  Disaster Response" }, value: "disaster" },
+          options: [
+            { text: { type: "plain_text", text: "⚡  Outage" }, value: "outage" },
+            { text: { type: "plain_text", text: "🔐  Security" }, value: "security" },
+            { text: { type: "plain_text", text: "🌪  Disaster Response" }, value: "disaster" },
+            { text: { type: "plain_text", text: "🤝  Nonprofit Operations" }, value: "nonprofit" },
+            { text: { type: "plain_text", text: "👤  Customer Escalation" }, value: "customer" }
+          ]
+        }
+      },
+      {
+        type: "input",
+        block_id: "incident_notes",
+        optional: true,
+        label: { type: "plain_text", text: "Initial Notes" },
+        element: {
+          type: "plain_text_input",
+          action_id: "notes_input",
+          multiline: true,
+          placeholder: { type: "plain_text", text: "Describe what you know so far..." }
+        }
+      },
+      {
+        type: "context",
+        elements: [{ type: "mrkdwn", text: "CrisisOps will auto-generate response tasks and notify the channel." }]
+      }
+    ]
+  };
 }

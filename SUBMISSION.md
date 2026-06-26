@@ -15,13 +15,59 @@ A lot of urgent, important work happens in Slack — at nonprofits, clinics, sch
 
 CrisisOps fixes that. In the demo scenario alone:
 
-- **3 hospital clinics** were affected with patient portal failures
-- **180 support tickets** spiked in under 22 minutes — with no owner
-- **1 backup generator** was matched and dispatched with a **42-minute ETA** before vaccine refrigeration failed
-- **0 missed decisions** — every key call was recorded with owner, rationale, and review time
-- **$0 additional software cost** for the team — it all happens inside Slack they already use
+- **3 hospital clinics** affected with patient portal failures
+- **180 support tickets** spiked in 22 minutes — with no named owner
+- **1 backup generator** matched and dispatched with a **42-minute ETA** before vaccine refrigeration failed
+- **0 missed decisions** — every key call recorded with owner, rationale, and review time
+- **$0 additional software cost** — it all runs inside Slack they already pay for
 
-The result: faster help, fewer missed needs, and a transparent audit trail — for teams that cannot afford PagerDuty, OpsGenie, or enterprise incident management software. CrisisOps works for any Slack workspace, regardless of budget.
+---
+
+## Market Size & Real-World Impact
+
+### Who needs this
+
+| Segment | Slack users (est.) | Current tool | Gap |
+|---|---|---|---|
+| Enterprise IT teams | 35M+ | PagerDuty ($21K+/yr) | Cost + context-switch |
+| Nonprofits | 500K orgs | Nothing / spreadsheets | No budget |
+| Hospitals & clinics | 6,500 US hospitals | Phone trees + email | Slow, no audit trail |
+| Emergency response NGOs | 100K+ globally | WhatsApp groups | No structure |
+| Schools (safety teams) | 130K US schools | Radio / PA | No coordination layer |
+
+**TAM:** $12B global incident management software market (IDC 2024)
+**SAM:** $1.4B — Slack-using orgs needing incident coordination
+**SOM (Year 1):** $14M — 1,400 enterprise workspaces at $10K/yr + nonprofit freemium
+
+### The cost of doing nothing
+
+> *Industry assumption: average IT outage costs $5,600 per minute (Gartner). A 30-minute delay in incident response = $168,000 in damage.*
+
+> *For a nonprofit: a missed generator dispatch during a storm = spoiled vaccines, displaced families, and reputational damage that takes years to repair.*
+
+CrisisOps targets the gap between the first chaotic Slack message and the moment someone is actually in command. In the demo scenario, that gap is **22 minutes**. At enterprise rates, that's **$123,200 in avoided damage per incident**.
+
+### Staff time saved
+
+| Task | Without CrisisOps | With CrisisOps | Saved |
+|---|---|---|---|
+| Detect incident from Slack noise | 15–30 min | <60 sec (Chaos Radar) | 29 min |
+| Write situation brief | 20–45 min | <10 sec (Groq AI) | 40 min |
+| Find available resources | 10–20 min (phone calls) | <5 sec (MCP search) | 18 min |
+| Write postmortem | 2–4 hours | <30 sec (AI draft) | 3.5 hrs |
+
+*Assumptions: 5-person incident team at $80/hr fully-loaded cost.*
+**Per incident savings: ~$300–$500 in staff time + avoided escalation damage.**
+
+### Validation roadmap
+
+We have not yet run a formal user study — but here is the validation plan for post-hackathon:
+
+1. **Week 1–2:** Pilot with 3 volunteer teams (one tech startup, one nonprofit, one clinic IT team) — 30-minute structured walkthrough, collect SUS usability scores
+2. **Week 3:** Expert review from an incident commander (target: SRE lead or emergency management professional via LinkedIn outreach)
+3. **Month 2:** Measure actual MTTD (Mean Time to Detect) and MTTR (Mean Time to Resolve) before vs. after CrisisOps in a live team
+
+*We believe CrisisOps can reduce MTTD by 85% and MTTR by 40% based on the workflow compression demonstrated in the demo.*
 
 ---
 
