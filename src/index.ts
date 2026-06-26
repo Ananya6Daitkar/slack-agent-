@@ -6,11 +6,22 @@ import { ApprovalManager } from "./agent/approvalManager.js";
 import { AuditLogger } from "./services/auditLogger.js";
 import { McpGatewayClient } from "./services/mcpGatewayClient.js";
 import { DemoRealTimeSearchService } from "./services/realTimeSearchService.js";
+import { SlackRtsService } from "./services/slackRtsService.js";
 import { store } from "./store/memoryStore.js";
 import { createDemoServer } from "./server.js";
 import { createSlackApp } from "./slack/slackApp.js";
 
-const rts = new DemoRealTimeSearchService(store);
+// ── Real-Time Search: use Slack RTS API if token present, else demo provider ──
+const userToken = process.env.SLACK_USER_TOKEN;
+const rts = userToken
+  ? new SlackRtsService(userToken)
+  : new DemoRealTimeSearchService(store);
+
+if (userToken) {
+  console.log("✅ Slack Real-Time Search API connected (xoxp user token)");
+} else {
+  console.log("ℹ️  Using demo search provider (set SLACK_USER_TOKEN for live RTS)");
+}
 const context = new ContextRetriever(rts);
 const mcp = new McpGatewayClient(store);
 const audit = new AuditLogger(store);
