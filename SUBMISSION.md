@@ -110,7 +110,7 @@ The demo runs fully offline with pre-loaded example data, so judges can see the 
 
 Making something that is both reliable for a demo and realistic for production. Real incident tools have many dependencies and edge cases.
 
-The solution was clean swap points: the demo search can be replaced with Slack's real-time search; the simulated tools can be replaced with real Jira, PagerDuty, and Salesforce connections; and the in-memory store can be replaced with Postgres.
+The solution was clean swap points: the simulated MCP tools can be replaced with real Jira, PagerDuty, and Salesforce connections; and the in-memory store can be replaced with Postgres. The Slack Real-Time Search API is already connected via a live `xoxp` user token.
 
 **Why not just use PagerDuty or OpsGenie?**
 
@@ -130,17 +130,16 @@ Also: social good and business value are not opposites. The same tool that helps
 
 ### What's Next
 
-- Connect to Slack's real-time search API
 - Add real connectors: Google Sheets, Airtable, Jira, PagerDuty, Salesforce, Zendesk, Google Maps, Statuspage
-- Add a Slack App Home dashboard with incident history
 - Add admin controls for data retention, permissions, and connector allowlists
+- Add incident simulation library for team training
 - Publish to the Slack Marketplace
 
----
+
 
 ## Built With
 
-TypeScript, Node.js, Express, Slack Bolt v4, Slack Socket Mode, Slack Block Kit, Slack App Home, **Slack Assistant Thread API**, Groq LLaMA-3.3-70b, MCP stdio server, Zod, Vitest
+TypeScript, Node.js, Express, Slack Bolt v4, Slack Socket Mode, Slack Block Kit, Slack App Home, **Slack Assistant Thread API**, **Slack Real-Time Search API**, Groq LLaMA-3.3-70b, MCP stdio server, Zod, Vitest
 
 ---
 
@@ -151,8 +150,7 @@ TypeScript, Node.js, Express, Slack Bolt v4, Slack Socket Mode, Slack Block Kit,
 | Architecture diagram | `assets/architecture-diagram.png` |
 | Thumbnail | `assets/crisisops-thumbnail.png` |
 | Web preview (while running) | `http://localhost:3000` |
-| Tool server examples | `MCP.md` |
-| Video script | `VIDEO_SUBMISSION_CHECKLIST.md` |
+| MCP server examples | `MCP.md` |
 
 ---
 
