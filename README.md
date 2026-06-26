@@ -1,147 +1,153 @@
 # CrisisOps Agent
 
-CrisisOps is a Slack bot that helps teams handle emergencies. When things go wrong — a system outage, a natural disaster, a clinic losing power — people start posting urgent messages across many Slack channels. CrisisOps watches those messages, spots the problem early, and gives your team a clear command center to respond from, all without leaving Slack.
+A Slack-native AI command center for high-stakes incidents. When something goes wrong — a system outage, a natural disaster, a clinic losing power — CrisisOps detects it from Slack messages, opens a structured response, matches resources, records decisions, and generates a postmortem. All without leaving Slack.
 
-It works for companies, nonprofits, schools, clinics, and any team that manages urgent situations in Slack.
+Built for the **Slack Agent Builder Challenge** using the Slack Assistant thread API, MCP server integration, and Real-Time Search API.
+
+---
 
 ## What It Does
 
-- **Detects problems early** — scans Slack messages to catch an emerging incident before it becomes obvious
-- **Opens an incident** — creates a structured response in Slack with a severity level, a commander, and a to-do list
-- **Generates a briefing** — summarizes what happened, who is affected, what is blocked, and what to do next
-- **Finds resources** — searches your inventory (generators, volunteers, staff) and matches them to open needs
-- **Records decisions** — logs who decided what, why, and what the risk was, so nothing gets lost
-- **Drafts updates** — prepares external status updates that a human must approve before they are sent
-- **Writes a postmortem** — turns the incident log into a structured report when it is all over
+| Step | Feature | Technology |
+|------|---------|-----------|
+| 1 | **Chaos Radar** — detects emerging incidents from cross-channel Slack signals | Groq LLaMA-3.3-70b + RTS |
+| 2 | **Open Incident** — structured command center with severity, commander, task list | Slack Block Kit + Modal |
+| 3 | **Situation Brief** — AI-generated briefing citing real Slack evidence | Groq LLaMA-3.3-70b |
+| 4 | **Resource Matching** — searches inventory and ranks matches | MCP tool calls |
+| 5 | **Decision Ledger** — records decisions with owner, risk, and evidence | Slack Block Kit |
+| 6 | **Approval Gate** — drafts external updates requiring human approval | Audit logger |
+| 7 | **Postmortem** — structured Block Kit report from the incident trail | Groq LLaMA-3.3-70b |
+
+---
+
+## Technologies Used
+
+- **Slack Assistant thread API** — natural DM conversations with suggested prompts, thread titles, and typing status
+- **MCP stdio server** — 7 tool calls: `search_inventory`, `reserve_resource`, `create_ticket`, `create_status_update`, `get_on_call_owner`, `get_customer_impact`, `get_location_eta`
+- **Slack Real-Time Search API** — live `search.messages` with `xoxp` user token (falls back to demo data if not configured)
+- **Groq LLaMA-3.3-70b** — AI-generated briefings, postmortems, and Chaos Radar summaries, all evidence-grounded
+- **Slack Block Kit** — rich cards, modals, App Home dashboard, interactive buttons
+- **Slack Socket Mode** — real-time event handling without a public server
+
+---
 
 ## Quick Start
 
 ```bash
 npm install
 cp .env.example .env
+# Fill in your tokens (see .env.example)
 npm run demo
 ```
 
-Then open your browser to:
+Open: **http://localhost:3000**
 
-```
-http://localhost:3000
-```
+The demo runs fully offline with seeded data — no Slack credentials needed for the web preview.
 
-Check the health endpoint:
-
-```
-http://localhost:3000/health
-```
-
-## Try the Demo Endpoints
-
-These commands let you walk through a full crisis scenario:
-
-```bash
-# Reset the demo to a clean state
-curl -X POST http://localhost:3000/demo/reset
-
-# Check for emerging incidents
-curl http://localhost:3000/demo/chaos-radar
-
-# Open an incident
-curl -X POST http://localhost:3000/demo/open-incident
-
-# Generate a situation briefing
-curl http://localhost:3000/demo/brief
-
-# Find and match available resources
-curl http://localhost:3000/demo/match-resources
-
-# Record a decision
-curl -X POST http://localhost:3000/demo/decision
-
-# Approve and send an external update
-curl -X POST http://localhost:3000/demo/approve-update
-
-# Generate the postmortem
-curl http://localhost:3000/demo/postmortem
-
-# See the full incident state
-curl http://localhost:3000/demo/state
-```
-
-## Slack Setup
-
-1. Create a Slack app at [api.slack.com](https://api.slack.com)
-2. Add these bot token scopes:
-   - `app_mentions:read`
-   - `commands`
-   - `chat:write`
-   - `channels:history`
-   - `channels:read`
-   - `groups:history` (for private channels)
-   - `im:history` (for direct messages)
-3. Add a slash command: `/crisisops`
-4. Turn on interactivity and events
-5. Fill in your `.env` file:
-
-```env
-SLACK_BOT_TOKEN=
-SLACK_SIGNING_SECRET=
-SLACK_APP_TOKEN=
-SLACK_SOCKET_MODE=true
-```
+---
 
 ## Slack Commands
 
-Type these in any Slack channel:
-
 ```
-/crisisops simulate
-/crisisops open incident
-/crisisops brief
-/crisisops match resources
-/crisisops postmortem
+/crisisops simulate        — seed the demo scenario
+/crisisops open incident   — open an incident command center
+/crisisops brief           — generate an AI situation briefing
+/crisisops match resources — find and rank available resources
+/crisisops record decision — log a key decision with evidence
+/crisisops postmortem      — generate a postmortem report
 ```
 
-Or mention the bot directly:
-
+Or mention the bot in any channel:
 ```
-@CrisisOps run simulation
 @CrisisOps what changed in the last 15 minutes?
 @CrisisOps match resources to open needs
-@CrisisOps record decision
 @CrisisOps generate postmortem
 ```
 
-## Run Tests and Build
+Or DM the bot directly — the Slack Assistant thread interface opens with suggested prompts.
+
+---
+
+## Environment Variables
+
+```env
+# Slack
+SLACK_BOT_TOKEN=xoxb-...
+SLACK_SIGNING_SECRET=...
+SLACK_APP_TOKEN=xapp-...
+SLACK_SOCKET_MODE=true
+
+# Slack Real-Time Search (xoxp user token with search:read scope)
+SLACK_USER_TOKEN=xoxp-...
+
+# Groq LLM
+GROQ_API_KEY=...
+```
+
+---
+
+## MCP Server
+
+Run the standalone MCP-compatible stdio server:
+
+```bash
+npm run mcp:server
+```
+
+Test it:
+
+```bash
+printf '%s\n' \
+'{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' \
+'{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+'{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"search_inventory","arguments":{"needText":"Clinic B needs a backup generator"}}}' \
+| npm run mcp:server
+```
+
+See `MCP.md` for full examples.
+
+---
+
+## Architecture
+
+```
+Slack (slash commands, mentions, DMs, App Home)
+  └── Slack Bolt App (Socket Mode)
+        ├── Assistant thread API  ← Slack AI capability
+        ├── Intent Router
+        └── CrisisOps Agent
+              ├── Chaos Radar          (Groq AI + RTS)
+              ├── Context Retriever    (Slack RTS API)
+              ├── Briefing Generator   (Groq AI)
+              ├── Resource Matcher     (MCP tools)
+              ├── Decision Ledger
+              ├── Approval Manager     (human-gated)
+              ├── Postmortem Generator (Groq AI)
+              └── Audit Logger
+                    └── Memory Store (swap → Postgres via docs/schema.sql)
+```
+
+---
+
+## Production Swap Points
+
+| Demo | Production |
+|------|-----------|
+| Seeded messages (fallback) | Slack Real-Time Search API (live) |
+| In-memory store | Postgres — schema in `docs/schema.sql` |
+| Mock MCP tools | Real connectors: Jira, PagerDuty, Salesforce, Zendesk, Statuspage |
+
+---
+
+## Run Tests
 
 ```bash
 npm test
 npm run build
 ```
 
-## MCP Server
+---
 
-CrisisOps includes a tool server that integrates with inventory, ticketing, and on-call systems:
+## Built With
 
-```bash
-npm run mcp:server
-```
-
-See `MCP.md` for examples.
-
-## Swapping Demo for Production
-
-The demo works out of the box with no external accounts needed. When you are ready for real use:
-
-- Replace the demo search with Slack's Real-Time Search API
-- Connect real tools: Jira, PagerDuty, Salesforce, Zendesk, Google Maps, Statuspage
-- Replace the in-memory store with Postgres (schema is in `docs/schema.sql`)
-
-## Project Files
-
-| File | What it is |
-|------|-----------|
-| `SUBMISSION.md` | Hackathon submission details |
-| `STUDY_GUIDE.md` | How the code is organized |
-| `MCP.md` | Tool server examples |
-| `VIDEO_SUBMISSION_CHECKLIST.md` | Demo video script |
-| `assets/` | Architecture diagram and thumbnail |
+TypeScript · Node.js · Express · Slack Bolt v4 · Slack Assistant API · Slack Block Kit · Slack App Home · Groq LLaMA-3.3-70b · MCP stdio server · Zod · Vitest
