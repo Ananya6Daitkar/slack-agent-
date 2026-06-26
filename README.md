@@ -129,16 +129,6 @@ Slack (slash commands, mentions, DMs, App Home)
 
 ---
 
-## Production Swap Points
-
-| Demo | Production |
-|------|-----------|
-| Seeded messages (fallback) | Slack Real-Time Search API (live) |
-| In-memory store | Postgres — schema in `docs/schema.sql` |
-| Mock MCP tools | Real connectors: Jira, PagerDuty, Salesforce, Zendesk, Statuspage |
-
----
-
 ## Run Tests
 
 ```bash
