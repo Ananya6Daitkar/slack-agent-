@@ -11,7 +11,7 @@ export function createDemoServer(agent: CrisisOpsAgent, approvalManager: Approva
   server.use("/assets", express.static("assets"));
 
   server.get("/", (_req, res) => res.type("html").send(previewPage()));
-  server.get("/health", (_req, res) => res.json({ ok: true, service: "crisisops-agent" }));
+  server.get("/health", (_req, res) => res.json({ ok: true, service: "crisisops-agent", version: "0.1.0" }));
 
   server.post("/demo/reset", (_req, res) => {
     store.resetDemo();
@@ -20,35 +20,53 @@ export function createDemoServer(agent: CrisisOpsAgent, approvalManager: Approva
 
   server.get("/demo/messages", (_req, res) => res.json(store.messages));
 
-  server.get("/demo/chaos-radar", async (_req, res) => res.json(await agent.runChaosRadar()));
-
-  server.post("/demo/open-incident", (req, res) => {
-    const incident = agent.openIncident(req.body.actorUserId ?? "demo-user");
-    res.json({ incident, tasks: store.tasks.filter((task) => task.incidentId === incident.id) });
+  server.get("/demo/chaos-radar", async (_req, res) => {
+    try { res.json(await agent.runChaosRadar()); }
+    catch (err) { res.status(500).json({ error: String(err) }); }
   });
 
-  server.get("/demo/brief", async (_req, res) => res.json(await agent.generateBrief()));
+  server.post("/demo/open-incident", (req, res) => {
+    try {
+      const incident = agent.openIncident(req.body.actorUserId ?? "demo-user");
+      res.json({ incident, tasks: store.tasks.filter((task) => task.incidentId === incident.id) });
+    } catch (err) { res.status(500).json({ error: String(err) }); }
+  });
 
-  server.get("/demo/match-resources", async (_req, res) => res.json(await agent.matchResources()));
+  server.get("/demo/brief", async (_req, res) => {
+    try { res.json(await agent.generateBrief()); }
+    catch (err) { res.status(500).json({ error: String(err) }); }
+  });
+
+  server.get("/demo/match-resources", async (_req, res) => {
+    try { res.json(await agent.matchResources()); }
+    catch (err) { res.status(500).json({ error: String(err) }); }
+  });
 
   server.post("/demo/decision", async (_req, res) => {
-    const decision = await agent.recordSuggestedDecision();
-    res.json({ decision: decision ?? null });
+    try {
+      const decision = await agent.recordSuggestedDecision();
+      res.json({ decision: decision ?? null });
+    } catch (err) { res.status(500).json({ error: String(err) }); }
   });
 
   server.post("/demo/approve-update", async (req, res) => {
-    const actorUserId = req.body.actorUserId ?? "demo-user";
-    const draft = await agent.draftApprovedUpdate(actorUserId);
-    const result = await approvalManager.approveStatusUpdate({
-      incident: draft.incident,
-      actorUserId,
-      content: draft.content,
-      audience: req.body.audience ?? "customer"
-    });
-    res.json({ draft, result });
+    try {
+      const actorUserId = req.body.actorUserId ?? "demo-user";
+      const draft = await agent.draftApprovedUpdate(actorUserId);
+      const result = await approvalManager.approveStatusUpdate({
+        incident: draft.incident,
+        actorUserId,
+        content: draft.content,
+        audience: req.body.audience ?? "customer"
+      });
+      res.json({ draft, result });
+    } catch (err) { res.status(500).json({ error: String(err) }); }
   });
 
-  server.get("/demo/postmortem", async (_req, res) => res.type("text/plain").send(await agent.postmortem()));
+  server.get("/demo/postmortem", async (_req, res) => {
+    try { res.type("text/plain").send(await agent.postmortem()); }
+    catch (err) { res.status(500).json({ error: String(err) }); }
+  });
 
   server.get("/demo/state", (_req, res) => {
     res.json({

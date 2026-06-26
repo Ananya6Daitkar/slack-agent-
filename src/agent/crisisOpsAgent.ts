@@ -13,7 +13,7 @@ export class CrisisOpsAgent {
     private readonly store: MemoryStore,
     private readonly context: ContextRetriever,
     private readonly incidents: IncidentStateManager,
-    private readonly mcp: McpGatewayClient
+    readonly mcp: McpGatewayClient
   ) {}
 
   async runChaosRadar() {
@@ -70,11 +70,21 @@ export class CrisisOpsAgent {
 
   async draftApprovedUpdate(actorUserId: string) {
     const incident = this.store.latestIncident() ?? this.openIncident(actorUserId);
-    return {
-      incident,
-      content:
-        "We are responding to a service disruption affecting patient portal confirmations and some clinic operations. Mitigation is underway, field resources are being dispatched to Clinic B, and the next update will follow in 30 minutes."
-    };
+    const matches = this.store.matches.filter((m) => m.incidentId === incident.id);
+    const decisions = this.store.decisions.filter((d) => d.incidentId === incident.id);
+    const resourceAction = matches.length > 0
+      ? `Field resources have been dispatched (${matches.length} match${matches.length > 1 ? "es" : ""} approved).`
+      : "Resource dispatch is being coordinated.";
+    const decisionNote = decisions.length > 0
+      ? `Key mitigation decision recorded: ${decisions[0].text}`
+      : "Mitigation is underway.";
+    const content = [
+      `We are responding to a service disruption affecting ${incident.title.toLowerCase()}.`,
+      decisionNote,
+      resourceAction,
+      "The next update will follow in 30 minutes. We apologize for the impact on your operations."
+    ].join(" ");
+    return { incident, content };
   }
 
   async postmortem() {

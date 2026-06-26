@@ -3,7 +3,7 @@ import { CrisisOpsAgent } from "../agent/crisisOpsAgent.js";
 import { routeIntent } from "../agent/intentRouter.js";
 import { ApprovalManager } from "../agent/approvalManager.js";
 import { store } from "../store/memoryStore.js";
-import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks } from "./blockKit.js";
+import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks, resourceReservedBlocks } from "./blockKit.js";
 
 export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalManager) {
   const token = process.env.SLACK_BOT_TOKEN;
@@ -107,8 +107,32 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
     if (channelId && decision) await client.chat.postMessage({ channel: channelId, text: "Decision recorded.", blocks: decisionBlocks(decision) });
   });
 
-  app.action("approve_best_match", async ({ ack }) => {
+  app.action("approve_best_match", async ({ ack, body, client }) => {
     await ack();
+    const action = "actions" in body ? (body.actions?.[0] as { value?: string } | undefined) : undefined;
+    const resourceId = action?.value;
+    const channelId = "channel" in body && body.channel ? body.channel.id : undefined;
+    const actorUserId = "user" in body ? body.user.id : "demo-user";
+    const latest = store.latestIncident();
+    if (!latest || !resourceId || !channelId) return;
+    const reservation = await agent["mcp"].reserveResource({ resourceId, incidentId: latest.id, actorUserId });
+    // find ETA for the reserved resource
+    const eta = await agent["mcp"].getLocationEta({ from: "Warehouse A", to: "Clinic B" });
+    const resource = store.resources.find((r) => r.id === resourceId);
+    await client.chat.postMessage({
+      channel: channelId,
+      text: `✅ Resource reserved: ${resource?.name ?? resourceId}`,
+      blocks: resourceReservedBlocks(resource?.name ?? resourceId, latest.title, eta.etaMinutes)
+    });
+    void reservation;
+  });
+
+  app.action("generate_postmortem", async ({ ack, body, client }) => {
+    await ack();
+    const channelId = "channel" in body && body.channel ? body.channel.id : undefined;
+    if (!channelId) return;
+    const postmortem = await agent.postmortem();
+    await client.chat.postMessage({ channel: channelId, text: `\`\`\`${postmortem.slice(0, 2800)}\`\`\`` });
   });
 
   app.action("approve_status_update", async ({ ack, body }) => {
