@@ -49,9 +49,14 @@ CrisisOps is a TypeScript/Node.js app. It connects to Slack using Slack Bolt and
 
 The app is built in three layers:
 
-- **Slack layer** — slash commands, mentions, interactive buttons, and message cards
-- **Agent layer** — the brains: intent routing, incident detection, briefing, resource matching, decision logging, approvals, and postmortem generation
-- **Tools layer** — a search abstraction and a set of simulated tools (inventory, ticketing, on-call, customer impact, maps, status updates)
+- **Slack layer** — slash commands, mentions, interactive buttons, Block Kit cards, App Home dashboard, and the **Slack Assistant thread API** for natural-language DM conversations
+- **Agent layer** — intent routing, Chaos Radar (AI-powered), briefing generation (Groq LLaMA-3.3-70b, evidence-grounded), resource matching, decision logging, approvals, and postmortem generation
+- **Tools layer** — MCP-compatible stdio server and gateway simulating inventory, ticketing, on-call, customer impact, maps, and status updates
+
+**AI stack:**
+- **Groq LLaMA-3.3-70b** generates situation briefs, postmortems, and Chaos Radar summaries — all grounded in real Slack evidence, never hallucinated
+- **Slack Assistant thread API** enables natural DM conversations with full suggested prompts, thread titles, and typing status — using Slack's native agent framework
+- All AI outputs are evidence-cited and human-approval-gated before anything external is sent
 
 The demo runs fully offline with pre-loaded example data, so judges can see the whole workflow without any real incident or external account.
 
@@ -89,7 +94,7 @@ Also: social good and business value are not opposites. The same tool that helps
 
 ## Built With
 
-TypeScript, Node.js, Express, Slack Bolt, Slack Socket Mode, Slack Block Kit, Slack App Home, Groq LLaMA-3.3-70b, MCP stdio server, Zod, Vitest
+TypeScript, Node.js, Express, Slack Bolt v4, Slack Socket Mode, Slack Block Kit, Slack App Home, **Slack Assistant Thread API**, Groq LLaMA-3.3-70b, MCP stdio server, Zod, Vitest
 
 ---
 

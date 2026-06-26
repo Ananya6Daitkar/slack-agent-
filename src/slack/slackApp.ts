@@ -1,9 +1,10 @@
-import { App } from "@slack/bolt";
+import { App, Assistant } from "@slack/bolt";
 import { CrisisOpsAgent } from "../agent/crisisOpsAgent.js";
 import { routeIntent } from "../agent/intentRouter.js";
 import { ApprovalManager } from "../agent/approvalManager.js";
 import { store } from "../store/memoryStore.js";
 import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks, resourceReservedBlocks } from "./blockKit.js";
+import { createAssistant } from "./assistantHandler.js";
 
 function appHomeBlocks() {
   const incident = store.latestIncident();
@@ -97,6 +98,10 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
     socketMode,
     appToken: socketMode ? appToken : undefined
   });
+
+  // ── Slack Assistant thread API ───────────────────────────────────────────
+  const assistant = createAssistant(agent);
+  app.assistant(assistant);
 
   app.command("/crisisops", async ({ command, ack, respond }) => {
     await ack();
