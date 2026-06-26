@@ -1,4 +1,4 @@
-import { detectChaos } from "./chaosRadar.js";
+import { detectChaos, detectChaosWithAI } from "./chaosRadar.js";
 import { ContextRetriever } from "./contextRetriever.js";
 import { suggestDecision } from "./decisionLedger.js";
 import { generateBriefing } from "./briefingGenerator.js";
@@ -18,7 +18,7 @@ export class CrisisOpsAgent {
 
   async runChaosRadar() {
     const messages = await this.context.incidentSignals();
-    return detectChaos(messages);
+    return detectChaosWithAI(messages);
   }
 
   openIncident(actorUserId: string) {

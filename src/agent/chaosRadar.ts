@@ -1,4 +1,5 @@
 import { ChaosSignal, SimulatedMessage } from "../types.js";
+import { groqComplete } from "../services/groqService.js";
 
 const urgentTerms = ["urgent", "failing", "blocked", "down", "risk", "needed", "needs", "offline", "eta"];
 const ownerTerms = ["own", "owner", "assigned", "commander"];
@@ -21,11 +22,13 @@ export function detectChaos(messages: SimulatedMessage[]): ChaosSignal {
   const confidence = Math.min(98, score);
   const severity = confidence >= 82 ? "SEV2" : confidence >= 65 ? "SEV3" : "WATCH";
 
+  const fallbackSummary = `${urgentHits.length} urgent signals across ${channels.size} channels with ${unresolvedHits.length} unresolved blockers/questions.`;
+
   return {
     confidence,
     severity,
     title: "Regional hospital network outage and field resource risk",
-    summary: `${urgentHits.length} urgent signals across ${channels.size} channels with ${unresolvedHits.length} unresolved blockers/questions.`,
+    summary: fallbackSummary,
     signals: [
       `${channels.size} channels mention related operational impact`,
       `${urgentHits.length} messages contain urgent/failure language`,
@@ -35,5 +38,27 @@ export function detectChaos(messages: SimulatedMessage[]): ChaosSignal {
     ],
     recommendedAction: confidence >= 70 ? "open_incident" : "watch",
     evidence: messages.slice(0, 6)
+  };
+}
+
+/** Async version — enriches the summary with a Groq-generated one-liner if key is present */
+export async function detectChaosWithAI(messages: SimulatedMessage[]): Promise<ChaosSignal> {
+  const base = detectChaos(messages);
+
+  const evidenceBlock = messages
+    .slice(0, 8)
+    .map((m) => `[${m.channel}] ${m.user}: ${m.text}`)
+    .join("\n");
+
+  const aiSummary = await groqComplete(
+    `You are a crisis detection AI. Given a set of Slack messages, write ONE concise sentence (max 30 words) 
+describing the emerging incident. Be specific — name affected systems, locations, and impact. No filler words.`,
+    `Slack messages:\n${evidenceBlock}\n\nConfidence: ${base.confidence}% | Severity: ${base.severity}\n\nWrite the one-sentence incident summary now.`,
+    80
+  );
+
+  return {
+    ...base,
+    summary: aiSummary?.trim() ?? base.summary
   };
 }

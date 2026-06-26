@@ -13,7 +13,15 @@
 
 A lot of urgent, important work happens in Slack — at nonprofits, clinics, schools, local government, and disaster-response teams. During a crisis, people post critical updates across many channels, but there is no structure. Things get missed, ownership is unclear, and help arrives too late.
 
-CrisisOps fixes that. It spots emerging problems, identifies what is needed and who is responsible, matches available resources (like generators or volunteers), records key decisions, and creates a clear record of what happened. The result: faster help, fewer missed needs, and a transparent audit trail — for teams that cannot afford expensive emergency software.
+CrisisOps fixes that. In the demo scenario alone:
+
+- **3 hospital clinics** were affected with patient portal failures
+- **180 support tickets** spiked in under 22 minutes — with no owner
+- **1 backup generator** was matched and dispatched with a **42-minute ETA** before vaccine refrigeration failed
+- **0 missed decisions** — every key call was recorded with owner, rationale, and review time
+- **$0 additional software cost** for the team — it all happens inside Slack they already use
+
+The result: faster help, fewer missed needs, and a transparent audit trail — for teams that cannot afford PagerDuty, OpsGenie, or enterprise incident management software. CrisisOps works for any Slack workspace, regardless of budget.
 
 ---
 
@@ -53,6 +61,10 @@ Making something that is both reliable for a demo and realistic for production. 
 
 The solution was clean swap points: the demo search can be replaced with Slack's real-time search; the simulated tools can be replaced with real Jira, PagerDuty, and Salesforce connections; and the in-memory store can be replaced with Postgres.
 
+**Why not just use PagerDuty or OpsGenie?**
+
+Those tools require every team member to have an account, learn a new interface, and context-switch away from Slack. They cost hundreds of dollars per month. A nonprofit coordinating storm relief, a school managing a lockdown, or a clinic protecting vaccine cold-chain during a power outage cannot afford that — and their staff are already in Slack. CrisisOps meets them where they are.
+
 ### What We're Proud Of
 
 CrisisOps feels like a real operational tool, not just a chatbot. It proactively detects problems. It cites evidence instead of making things up. It requires human approval before sending anything external. It creates a clean audit trail from the first alert to the final postmortem.
@@ -77,7 +89,7 @@ Also: social good and business value are not opposites. The same tool that helps
 
 ## Built With
 
-TypeScript, Node.js, Express, Slack Bolt, Slack Socket Mode, Slack Block Kit, Zod, Vitest
+TypeScript, Node.js, Express, Slack Bolt, Slack Socket Mode, Slack Block Kit, Slack App Home, Groq LLaMA-3.3-70b, MCP stdio server, Zod, Vitest
 
 ---
 

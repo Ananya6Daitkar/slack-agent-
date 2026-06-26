@@ -5,6 +5,84 @@ import { ApprovalManager } from "../agent/approvalManager.js";
 import { store } from "../store/memoryStore.js";
 import { briefingBlocks, chaosRadarBlocks, decisionBlocks, incidentOpenedBlocks, matchBlocks, resourceReservedBlocks } from "./blockKit.js";
 
+function appHomeBlocks() {
+  const incident = store.latestIncident();
+  const tasks = incident ? store.tasks.filter((t) => t.incidentId === incident.id) : [];
+  const decisions = incident ? store.decisions.filter((d) => d.incidentId === incident.id) : [];
+  const matches = incident ? store.matches.filter((m) => m.incidentId === incident.id) : [];
+  const auditCount = store.auditLogs.length;
+  const toolCallCount = store.toolCalls.length;
+
+  const statusEmoji = !incident ? "🟢" : incident.status === "open" ? "🔴" : incident.status === "contained" ? "🟡" : "🟢";
+
+  const blocks: any[] = [
+    { type: "header", text: { type: "plain_text", text: "🚨  CrisisOps Command Center" } },
+    {
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: incident
+          ? `${statusEmoji}  *Active Incident:* ${incident.title}\n*Severity:* ${incident.severity}  |  *Status:* ${incident.status.toUpperCase()}  |  *Commander:* <@${incident.commanderUserId}>`
+          : "🟢  *No active incident.* Run `/crisisops simulate` to start a demo."
+      }
+    },
+    { type: "divider" },
+    {
+      type: "section",
+      fields: [
+        { type: "mrkdwn", text: `*📋 Tasks*\n${tasks.length} open` },
+        { type: "mrkdwn", text: `*📝 Decisions*\n${decisions.length} recorded` },
+        { type: "mrkdwn", text: `*🔧 Resources Matched*\n${matches.length} matches` },
+        { type: "mrkdwn", text: `*🛠 MCP Tool Calls*\n${toolCallCount} logged` },
+        { type: "mrkdwn", text: `*📜 Audit Events*\n${auditCount} entries` },
+        { type: "mrkdwn", text: `*🤖 AI Engine*\nGroq LLaMA-3.3-70b` }
+      ]
+    },
+    { type: "divider" }
+  ];
+
+  if (tasks.length) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Open Tasks*\n${tasks.map((t) => `• [${t.priority.toUpperCase()}] ${t.title} — \`${t.status}\``).join("\n")}`
+      }
+    });
+    blocks.push({ type: "divider" });
+  }
+
+  if (decisions.length) {
+    blocks.push({
+      type: "section",
+      text: {
+        type: "mrkdwn",
+        text: `*Decision Ledger*\n${decisions.map((d) => `• ${d.text} _(${d.approvalStatus}, owner: ${d.owner})_`).join("\n")}`
+      }
+    });
+    blocks.push({ type: "divider" });
+  }
+
+  blocks.push({
+    type: "actions",
+    elements: [
+      { type: "button", text: { type: "plain_text", text: "📡  Run Chaos Radar" }, style: "primary", action_id: "home_chaos_radar", value: "run" },
+      { type: "button", text: { type: "plain_text", text: "🔴  Open Incident" }, action_id: "home_open_incident", value: "run" },
+      { type: "button", text: { type: "plain_text", text: "↺  Reset Demo" }, action_id: "home_reset_demo", value: "run" }
+    ]
+  });
+
+  blocks.push({
+    type: "context",
+    elements: [{
+      type: "mrkdwn",
+      text: `Last updated: ${new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}  ·  Use \`/crisisops\` commands or buttons in any channel`
+    }]
+  });
+
+  return blocks;
+}
+
 export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalManager) {
   const token = process.env.SLACK_BOT_TOKEN;
   const signingSecret = process.env.SLACK_SIGNING_SECRET;
@@ -142,6 +220,44 @@ export function createSlackApp(agent: CrisisOpsAgent, approvalManager: ApprovalM
     if (!latest) return;
     const draft = await agent.draftApprovedUpdate(actorUserId);
     await approvalManager.approveStatusUpdate({ incident: latest, actorUserId, content: draft.content, audience: "customer" });
+  });
+
+  // ── App Home ────────────────────────────────────────────────────────────────
+  app.event("app_home_opened", async ({ event, client }) => {
+    await client.views.publish({
+      user_id: event.user,
+      view: {
+        type: "home",
+        blocks: appHomeBlocks()
+      }
+    });
+  });
+
+  app.action("home_chaos_radar", async ({ ack, body, client }) => {
+    await ack();
+    const signal = await agent.runChaosRadar();
+    await client.views.publish({
+      user_id: body.user.id,
+      view: { type: "home", blocks: [...chaosRadarBlocks(signal), { type: "divider" }, ...appHomeBlocks().slice(-2)] }
+    });
+  });
+
+  app.action("home_open_incident", async ({ ack, body, client }) => {
+    await ack();
+    agent.openIncident(body.user.id);
+    await client.views.publish({
+      user_id: body.user.id,
+      view: { type: "home", blocks: appHomeBlocks() }
+    });
+  });
+
+  app.action("home_reset_demo", async ({ ack, body, client }) => {
+    await ack();
+    store.resetDemo();
+    await client.views.publish({
+      user_id: body.user.id,
+      view: { type: "home", blocks: appHomeBlocks() }
+    });
   });
 
   return app;
