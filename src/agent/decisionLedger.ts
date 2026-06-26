@@ -8,7 +8,7 @@ export function suggestDecision(incidentId: string, messages: SimulatedMessage[]
     text: proposal.text.replace(/^Decision proposal:\s*/i, ""),
     owner: proposal.user,
     reason: "Mitigate immediate operational risk while the incident team confirms the durable fix.",
-    evidenceUrls: [proposal.permalink],
+    evidenceUrls: [`${proposal.id} in ${proposal.channel}`],
     risk: "Temporary mitigation may reduce functionality or create follow-up reconciliation work.",
     reviewAt: new Date(Date.now() + 30 * 60_000).toISOString(),
     approvalStatus: "draft"
